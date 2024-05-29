@@ -91,6 +91,8 @@ export default function CalenderSettingType({ params }) {
     }
 
 
+    //console.log(day.split("-")[1])
+
     //ADD NEW DATA
     const addCalender = async () => {
 
@@ -112,8 +114,9 @@ export default function CalenderSettingType({ params }) {
                         addDoc(calenderCollectionRef, {
                             date: day,
                             reason: reason,
-                            year: new Date().getFullYear(),
-                            day: new Date().getDate(),
+                            year: parseInt(day.split("-")[0]),
+                            day: parseInt(day.split("-")[2]),
+                            month:parseInt(day.split("-")[1]),
                         })
                         console.log('success')
                         //console.log(auth.currentUser)

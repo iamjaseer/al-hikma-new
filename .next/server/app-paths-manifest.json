@@ -1,0 +1,7 @@
+{
+  "/attendance-report/[month]/page": "app/attendance-report/[month]/page.js",
+  "/dashboard/page": "app/dashboard/page.js",
+  "/attendance-report/page": "app/attendance-report/page.js",
+  "/calendar/page": "app/calendar/page.js",
+  "/calendar/[type]/page": "app/calendar/[type]/page.js"
+}

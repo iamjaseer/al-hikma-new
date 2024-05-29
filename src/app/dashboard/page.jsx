@@ -16,7 +16,7 @@ export default function AdminDashboard() {
 
 
   //CONTEXT
-  const { loginUser } = useUserContext()
+  const userId = localStorage.getItem('userId');
   const { profile } = useUserContext()
 
 
@@ -60,7 +60,7 @@ export default function AdminDashboard() {
 
 
 
-  //console.log(profile)
+ // console.log(profile[0].userId)
 
   return (
     <>
@@ -109,7 +109,7 @@ export default function AdminDashboard() {
               :
               /* ==================== IF USER PUBLIC (TEACHERS) =======================*/
               <div className="h-screen items-center grid">
-                <Punching user={loginUser.uid} />
+            <Punching user={userId} />
               </div>
             }
           </div>

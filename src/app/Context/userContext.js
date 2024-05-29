@@ -39,6 +39,8 @@ export const UserContextProvider = ({ children }) => {
                 onAuthStateChanged(auth, (user) => {
                     setLoginUser(user)
 
+                    localStorage.setItem('userId', user.uid);
+
                 });
 
                 resolve();

@@ -16,13 +16,19 @@ export default function AttendanceView({ params }) {
 
 
     //CONTEXT
-    const { loginUser } = useUserContext()
+    const userId = localStorage.getItem('userId');
+    const { profile } = useUserContext()
+
+
+
+
+
+
 
 
     //STATES
     const [getAttendance, setGetAttendance] = useState([])
     const [getHolidays, setGetHolidays] = useState([])
-    const [profile, setProfile] = useState([])
     const [totalSalary, setTotalSalary] = useState(0)
 
     //FIREBASE DB
@@ -38,27 +44,6 @@ export default function AttendanceView({ params }) {
 
 
 
-        const getDaysInMonth = function (month, year) {
-            return new Date(year, month, 0).getDate();
-        };
-
-
-
-
-        //     holidays.map((item) => {
-        //    console.log(item)
-        //     });
-
-        //console.log(getAttendance)
-
-
-        const splitDay = ('2024-05-30', '2024-05-31', '2024-05-28', '2024-05-27').split("-")
-
-        function removeLeadingZerosRegex(str) {
-            return str.replace(/^0+(?=\d)/, '');
-        }
-
-
         //WORKING TIME START AND END
         const startTime = 7
         const endTime = 8
@@ -67,20 +52,6 @@ export default function AttendanceView({ params }) {
 
         const days = [];
 
-        //for (let i = 0; i < getDaysInMonth(new Date().getMonth() + 1, new Date().getFullYear()); i++) {
-        // days.push(
-        //     <li className="flex justify-start items-center gap-5">
-        //         <span className="bg-sky-400 border border-sky-400 text-white rounded-full p-2 w-10 h-9 flex justify-center">{i+1}</span>
-        //         <span className="flex justify-between items-center w-full border-b-gray-100 border-b-2 py-4  text-blue-800 font-semibold">
-        //             <span>
-        //                 IN 7.02 {i++ == removeLeadingZerosRegex(splitDay[2]) ? 'yes' : 'no'}
-        //             </span>
-        //             <span>
-        //                 OUT 8.35
-        //             </span>
-        //         </span>
-        //     </li>
-        // )
 
         const mergedArray = [...holidays, ...getAttendance];
 
@@ -189,66 +160,29 @@ export default function AttendanceView({ params }) {
     }
 
 
+    
+
+    //CALCULATE SALARY
+        const paySalary = () => {
+
+            const perDay =  profile[0].salary/30
+            //const lateDays = 
+            const earn = getAttendance.length*perDay
+          
+            return earn
+     }
+
+      
+
 
     useEffect(() => {
 
 
-
-        //CALCULATE SALARY
-
-        (async () => {
-            try {
-               
-
-                    const perDay = await profile[0].salary/30
-                    setTotalSalary(perDay)
-                
-                
-
-
-            } catch (err) {
-                console.log('error')
-                console.log(err)
-            }
-        })();
-
-
-
-
-        //PROFILE
+//HOLIDAYS
         (async () => {
             try {
 
-                
-
-                const teachersCollectionRef = await query(collection(db, `teachers`),);
-               
-
-                const data = await getDocs(query(teachersCollectionRef, where('userId', '==', 'zZfRakIcCBbEkW46oFNp1Xav17r2')))
-
-            
-                const filteredData = data.docs.map((doc) => (
-                    {
-                        ...doc.data(),
-                        id: doc.id
-                    }
-                ))
-
-                setProfile(filteredData)
-
-
-            } catch (err) {
-                console.log('error')
-                console.log(err)
-            }
-        })();
-
-
-        //HOLIDAYS
-        (async () => {
-            try {
-
-                const holidaysCollectionRef = await query(collection(db, `holidays-2024-2025`),);
+                const holidaysCollectionRef = await query(collection(db, `holidays-${new Date().getFullYear()}-${new Date().getFullYear() + 1}`), where('month', '==', parseInt(month)));
 
                 const data = await getDocs(query(holidaysCollectionRef,))
 
@@ -278,7 +212,8 @@ export default function AttendanceView({ params }) {
         //ATTENDANCE
         (async () => {
             try {
-                const attendanceReportCollectionRef = await query(collection(db, `attendance-user-${loginUser.uid}-month-${new Date().getMonth() + 1}-year-${new Date().getFullYear()}`), where('month', '==', 5));
+                
+                const attendanceReportCollectionRef = await query(collection(db, `attendance-user-${userId}-month-${new Date().getMonth() + 1}-year-${new Date().getFullYear()}`), where('month', '==', parseInt(month)));
 
                 const data = await getDocs(query(attendanceReportCollectionRef,))
 
@@ -291,6 +226,7 @@ export default function AttendanceView({ params }) {
                     }
                 ))
 
+                //console.log(filteredData)
                 setGetAttendance(filteredData)
 
             } catch (err) {
@@ -299,7 +235,7 @@ export default function AttendanceView({ params }) {
             }
         })();
 
-
+        paySalary()
 
     }, []);
 
@@ -312,7 +248,6 @@ export default function AttendanceView({ params }) {
 
     return (
         <ProtectedRoute>
-            dfgdfgdfg
  <div className="bg-white h-screen  px-6 py-5">
                         <Header type="page-header" title={`ഹാജർ പട്ടിക ${dateMalayalam(month)} ${new Date().getFullYear()}`} />
                         <div className="grid items-start px-6 py-5">
@@ -325,7 +260,7 @@ export default function AttendanceView({ params }) {
                                 ജനുവരി മാസത്തെ ശമ്പളം
                             </span>
                             <span className="number block text-end">
-                                ₹{totalSalary} 
+                                ₹{paySalary()} 
                             </span>
                         </div>
                     </div>

@@ -14,6 +14,7 @@ export default function Punching({ user }) {
   const endTime = 8
 
   
+  //console.log(user)
 
   //FIREBASE DB
   const attendanceCollectionRef = collection(db, `attendance-user-${user}-month-${new Date().getMonth() + 1}-year-${new Date().getFullYear()}`,)
@@ -46,7 +47,7 @@ export default function Punching({ user }) {
   //GET PUNCH STATUS
   const getPunchStatus = async () => {
 
-    const data = await getDocs(query(attendanceCollectionRef,))
+    const data = await getDocs(query(attendanceCollectionRef, where('day', '==', parseInt(new Date().getDate()))))
 
     //await getDocs(teachersCollectionRef)
 
@@ -76,6 +77,8 @@ export default function Punching({ user }) {
   });
 
 
+ 
+
   // PUNCH IN
   function readyIn() {
 
@@ -90,7 +93,19 @@ export default function Punching({ user }) {
       if (result.isConfirmed) {
 
         try {
-          setDoc(doc(attendanceCollectionRef, user), {
+          setDoc(doc(attendanceCollectionRef, 'day-'+new Date().getDate()), {
+
+            // date: "5/26/2024",
+            // month: 5,
+            // year: 2024,
+            // day: 26,
+            // punchIn: 7,
+            // punchOut: 8,
+            // status: 'punchout',
+            // teacherId: user,
+
+
+
             date: new Date().toLocaleDateString(),
             month: new Date().getMonth() + 1,
             year: new Date().getFullYear(),
@@ -139,7 +154,7 @@ export default function Punching({ user }) {
 
 
         try {
-          const attendanceDoc = doc(attendanceCollectionRef, user)
+          const attendanceDoc = doc(attendanceCollectionRef, 'day-'+new Date().getDate())
           updateDoc(attendanceDoc, {
             punchOut: `${hoursIST}:${minutesIST}`,
             status: 'punchout',
@@ -164,9 +179,44 @@ export default function Punching({ user }) {
   }
 
 
+
  
 
   useEffect(() => {
+
+    //HOLIDAYS
+    (async () => {
+      try {
+
+          const holidaysCollectionRef = await query(collection(db, `holidays-${new Date().getFullYear()}-${new Date().getFullYear() + 1}`), where('month', '==', 5));
+
+          const data = await getDocs(query(holidaysCollectionRef,))
+
+          //await getDocs(teachersCollectionRef)
+
+          const filteredData = data.docs.map((doc) => (
+              {
+                  ...doc.data(),
+                  id: doc.id
+              }
+          ))
+
+          //filteredData.map((item) => {
+          setGetHolidays(filteredData)
+        console.log(item)
+          //});
+
+
+
+      } catch (err) {
+          console.log('error')
+          console.log(err)
+      }
+  })();
+
+
+
+
     getPunchStatus()
 
   }, []);
@@ -174,11 +224,11 @@ export default function Punching({ user }) {
 
 
 
-  //console.log(currentPuchStatus)
+  //console.log(punchStatus)
   return (
     <>
 
-      {punchStatus.status == null && startTime <= 7 && endTime >= 8 ? <div className="bg-white rounded-xl p-6 grid gap-4 ">
+      {!punchStatus.status && startTime <= 7 && endTime >= 8 ? <div className="bg-white rounded-xl p-6 grid gap-4 ">
         <p className="text-base">തങ്ങളുടെ അകത്തോട്ട് ഉള്ള ഹാജർ രേഖപ്പെടുത്തുക  </p>
         <button className="w-full bg-sky-400 hover:bg-sky-500 active:bg-sky-500 rounded-md p-4 text-white font-bold text-lg transition-all" onClick={() => readyIn()}>അകത്തേക്ക്</button>
       </div> : null}

@@ -72,7 +72,7 @@ export default function Header({ type, title }) {
                 <header className="flex justify-start items-center gap-4">
                     <button onClick={router.back} className="p-4">
                         <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" fill="none" viewBox="0 0 14 14">
-                            <path fill="#1C208F" fill-rule="evenodd" d="M9.935 1.44a.437.437 0 0 1 0 .62L4.994 7l4.94 4.94a.438.438 0 1 1-.619.62l-5.25-5.25a.437.437 0 0 1 0-.62l5.25-5.25a.437.437 0 0 1 .62 0Z" clip-rule="evenodd" />
+                            <path fill="#1C208F" fillRule="evenodd" d="M9.935 1.44a.437.437 0 0 1 0 .62L4.994 7l4.94 4.94a.438.438 0 1 1-.619.62l-5.25-5.25a.437.437 0 0 1 0-.62l5.25-5.25a.437.437 0 0 1 .62 0Z" clipRule="evenodd" />
                         </svg>
 
                     </button>
