@@ -1,9 +1,0 @@
-{
-  "/leave/page": "app/leave/page.js",
-  "/dashboard/page": "app/dashboard/page.js",
-  "/calendar/[type]/page": "app/calendar/[type]/page.js",
-  "/reset-password/page": "app/reset-password/page.js",
-  "/login/page": "app/login/page.js",
-  "/attendance-report/page": "app/attendance-report/page.js",
-  "/attendance-report/[month]/page": "app/attendance-report/[month]/page.js"
-}
