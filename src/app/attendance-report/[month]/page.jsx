@@ -11,8 +11,13 @@ import ProtectedRoute from '../../ProtectedRoute';
 
 export default function AttendanceView({ params }) {
 
-    let { month } = params
 
+    //WORKING TIME START AND END
+    const startTime = 7
+    const endTime = 8
+
+
+    let { month } = params
 
 
     //CONTEXT
@@ -20,33 +25,73 @@ export default function AttendanceView({ params }) {
     const { profile } = useUserContext()
 
 
-
-
-
-
-
-
     //STATES
     const [getAttendance, setGetAttendance] = useState([])
     const [getHolidays, setGetHolidays] = useState([])
-    const [totalSalary, setTotalSalary] = useState(0)
-
-    //FIREBASE DB
-    // const attendanceReportCollectionRef =  collection(db, `attendance-user-${loginUser.uid}-month-${new Date().getMonth() + 1}-year-${new Date().getFullYear()}`, where('month' == 5))
+    const [checkIntime, setCheckInTime] = useState('')
 
 
 
+    //CHECk PUNCH IN
+    const checkPunchInTimeTeachers = (getTime) => {
+
+
+
+        const onTimeThreshold = new Date();
+        onTimeThreshold.setHours(7, 6, 0);
+
+
+        const punchIn = new Date(getTime);
+
+
+        if (punchIn <= onTimeThreshold) {
+            return 1;
+        } else {
+            return 0;
+        }
+
+    }
+
+
+    //CHECk PUNCH OUT
+    const checkPunchOutTimeTeachers = (getTime) => {
+
+        const onTimeThreshold = new Date();
+        onTimeThreshold.setHours(8, 0, 0);
+
+
+        const punchOut = new Date(getTime);
+
+
+        if (punchOut >= onTimeThreshold) {
+            return 1;
+        } else {
+            return 0;
+        }
+
+    }
+
+
+    //GET THE TIME FROM STRING
+    const getTimeFromString = (dateTimeString) => {
+
+        // Create a Date object from the provided string
+        const date = new Date(dateTimeString);
+
+        // Extract hours, minutes, and seconds
+        const hours = String(date.getHours()).padStart(2, '0');
+        const minutes = String(date.getMinutes()).padStart(2, '0');
+        const seconds = String(date.getSeconds()).padStart(2, '0');
+
+        // Return the time portion as a string
+        return `${hours}:${minutes}:${seconds}`;
+    }
 
 
     //PRINT DAYS BY MONTH NUMBER
 
     const attendanceTable = (holidays) => {
 
-
-
-        //WORKING TIME START AND END
-        const startTime = 7
-        const endTime = 8
 
 
 
@@ -65,8 +110,18 @@ export default function AttendanceView({ params }) {
 
                     <li className="flex justify-start items-center gap-5" key={key}>
 
+                        {/* {checkPunchInTimeTeachers(item.punchIn) == 0 ? 'Late': 'Correct'} */}
+                        {/* {checkPunchOutTimeTeachers(item.punchOut) == 0 ? 'Early': 'Correct'}  */}
+
+                        {/* {checkPunchInTimeTeachers(item.punchIn)} */}
                         {item.reason && <span className="bg-white border-blue-800 border text-blue-800 rounded-full p-2 w-10 h-9 flex justify-center">{item.date.substring(item.date.indexOf("-") + 4)}</span>}
-                        {!item.reason ? <span className={startTime < item.punchIn || endTime > item.punchOut ? 'bg-yellow-400 border border-yellow-400 text-white rounded-full p-2 w-10 h-9 flex justify-center' : 'bg-sky-400 border border-sky-400 text-white rounded-full p-2 w-10 h-9 flex justify-center'}>
+
+                        {/* checkPunchInTimeTeachers(item.punchIn) == 0 &&  */}
+                        {!item.reason ? <span className={checkPunchOutTimeTeachers(item.punchOut) == 0 || checkPunchInTimeTeachers(item.punchIn) == 0 ?
+
+                            'bg-yellow-400 border border-yellow-400 text-white rounded-full p-2 w-10 h-9 flex justify-center'
+                            :
+                            'bg-sky-400 border border-sky-400 text-white rounded-full p-2 w-10 h-9 flex justify-center'}>
                             {item.day}
                         </span>
                             :
@@ -79,12 +134,14 @@ export default function AttendanceView({ params }) {
                         </span>
                         }
 
-                        {!item.reason ? <span className={startTime < item.punchIn || endTime > item.punchOut ? 'flex justify-between items-center w-full border-b-gray-100 border-b-2 py-4  text-yellow-400 font-semibold' : 'flex justify-between items-center w-full border-b-gray-100 border-b-2 py-4  text-sky-400 font-semibold'}>
+                        {!item.reason ? <span className={checkPunchOutTimeTeachers(item.punchOut) == 0 || checkPunchInTimeTeachers(item.punchIn) == 0 ? 'flex justify-between items-center w-full border-b-gray-100 border-b-2 py-4  text-yellow-400 font-semibold' : 'flex justify-between items-center w-full border-b-gray-100 border-b-2 py-4  text-sky-400 font-semibold'}>
                             <span>
-                                IN {item.punchIn} {startTime < item.punchIn ? '- LPU' : null}
+                                IN  {getTimeFromString(item.punchIn)}
+                                {checkPunchInTimeTeachers(item.punchIn) == 0 ? '- LPU' : null}
                             </span>
                             <span>
-                                OUT {item.punchOut} {endTime > item.punchOut ? '- EPO' : null}
+                                OUT {getTimeFromString(item.punchOut)}
+                                {checkPunchOutTimeTeachers(item.punchOut) == 0 ? '- EPO' : null}
                             </span>
                         </span>
                             :
@@ -110,9 +167,6 @@ export default function AttendanceView({ params }) {
         return days;
 
     }
-
-
-
 
 
     //DATE MALAYALAM
@@ -160,25 +214,38 @@ export default function AttendanceView({ params }) {
     }
 
 
-    
+
+
+
 
     //CALCULATE SALARY
-        const paySalary = () => {
+    const paySalary = () => {
 
-            const perDay =  profile[0].salary/30
-            //const lateDays = 
-            const earn = getAttendance.length*perDay
-          
-            return earn
-     }
+        const latePunchin = getAttendance
 
-      
+        //console.log(getAttendance)
+        const latePunchinList = latePunchin.filter(item => checkPunchInTimeTeachers(item.punchIn) == 0);
+        const earlyPunchinList = latePunchin.filter(item => checkPunchOutTimeTeachers(item.punchOut) == 0);
+
+
+        const totalDays = 30
+
+        const perDay = profile[0].salary / totalDays
+
+        const lateDeduction = (parseInt((latePunchinList.length + earlyPunchinList.length)) / 3) * perDay
+
+        //console.log(lateDeduction)
+
+        const earn = (getAttendance.length * perDay - lateDeduction)
+
+        return earn
+    }
+
 
 
     useEffect(() => {
 
-
-//HOLIDAYS
+        //HOLIDAYS
         (async () => {
             try {
 
@@ -212,59 +279,54 @@ export default function AttendanceView({ params }) {
         //ATTENDANCE
         (async () => {
             try {
-                
-                const attendanceReportCollectionRef = await query(collection(db, `attendance-user-${userId}-month-${new Date().getMonth() + 1}-year-${new Date().getFullYear()}`), where('month', '==', parseInt(month)));
 
-                const data = await getDocs(query(attendanceReportCollectionRef,))
+                const collectionName = `attendance-user-${userId}-month-${new Date().getMonth() + 1}-year-${new Date().getFullYear()}`
 
-                //await getDocs(teachersCollectionRef)
+                //NORMAL
+                const attendanceReportCollectionRef = await query(collection(db, collectionName), where('month', '==', parseInt(month)));
 
-                const filteredData = data.docs.map((doc) => (
+                const dataNormal = await getDocs(query(attendanceReportCollectionRef,))
+
+                const filteredDataNormal = dataNormal.docs.map((doc) => (
                     {
                         ...doc.data(),
                         id: doc.id
                     }
                 ))
 
-                //console.log(filteredData)
-                setGetAttendance(filteredData)
+                //console.log(filteredDataNormal)
+                setGetAttendance(filteredDataNormal)
+
 
             } catch (err) {
                 console.log('error')
                 console.log(err)
             }
         })();
-
         paySalary()
 
     }, []);
 
 
-
-
-    //console.log(getAttendance)
-    //console.log(getHolidays)
-
-
     return (
         <ProtectedRoute>
- <div className="bg-white h-screen  px-6 py-5">
-                        <Header type="page-header" title={`ഹാജർ പട്ടിക ${dateMalayalam(month)} ${new Date().getFullYear()}`} />
-                        <div className="grid items-start px-6 py-5">
-                            <ul className="p-0 m-0 number text-sm uppercase">
-                                {attendanceTable(getHolidays)}
-                            </ul>
-                        </div>
-                        <div className="fixed bottom-0 left-0 right-0 bg-white flex justify-start items-center gap-5 p-4 text-blue-800 font-semibold">
-                            <span className="block w-full">
-                                ജനുവരി മാസത്തെ ശമ്പളം
-                            </span>
-                            <span className="number block text-end">
-                                ₹{paySalary()} 
-                            </span>
-                        </div>
-                    </div>
-         </ProtectedRoute>
+            <div className="bg-white h-screen  px-6 py-5">
+                <Header type="page-header" title={`ഹാജർ പട്ടിക ${dateMalayalam(month)} ${new Date().getFullYear()}`} />
+                <div className="grid items-start px-6 py-5">
+                    <ul className="p-0 m-0 number text-sm uppercase">
+                        {attendanceTable(getHolidays)}
+                    </ul>
+                </div>
+                <div className="fixed bottom-0 left-0 right-0 bg-white flex justify-start items-center gap-5 p-4 text-blue-800 font-semibold">
+                    <span className="block w-full">
+                        ജനുവരി മാസത്തെ ശമ്പളം
+                    </span>
+                    <span className="number block text-end">
+                        ₹{paySalary()}
+                    </span>
+                </div>
+            </div>
+        </ProtectedRoute>
     )
 
 }
