@@ -13,11 +13,11 @@ import ProtectedRoute from '../ProtectedRoute';
 
 export default function AdminDashboard() {
 
-
-
-  //CONTEXT
+  //LOCAL STORAGE
   const userId = localStorage.getItem('userId');
-  const { profile } = useUserContext()
+  
+  //CONTEXT
+ const { profile } = useUserContext()
 
 
   //FIREBASE DB

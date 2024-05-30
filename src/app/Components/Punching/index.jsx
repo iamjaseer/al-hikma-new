@@ -10,10 +10,10 @@ export default function Punching({ user }) {
 
 
   //WORKING TIME START AND END
-  const startTime = 7
-  const endTime = 8
+  const startTime = process.env.NEXT_PUBLIC_START_TIME
+  const endTime = process.env.NEXT_PUBLIC_END_TIME
 
-  
+
   //console.log(user)
 
   //FIREBASE DB
@@ -23,6 +23,7 @@ export default function Punching({ user }) {
   //STATES
   const [getHolidays, setGetHolidays] = useState([])
   const [punchStatus, setPunchStatus] = useState([])
+  const [getLeaves, seGetLeaves] = useState([])
   //const [currentPuchStatus, setcurrentPuchStatus] = useState([])
 
 
@@ -78,8 +79,8 @@ export default function Punching({ user }) {
 
 
 
-  
- 
+
+
 
   // PUNCH IN
   function readyIn() {
@@ -95,15 +96,15 @@ export default function Punching({ user }) {
       if (result.isConfirmed) {
 
         try {
-          setDoc(doc(attendanceCollectionRef, 'day-'+new Date().getDate()), {
-            //setDoc(doc(attendanceCollectionRef, 'day-31'), {
+          setDoc(doc(attendanceCollectionRef, 'day-' + new Date().getDate()), {
+            //setDoc(doc(attendanceCollectionRef, 'day-30'), {
 
-           // date: "5/26/2024",
+            
             // month: 5,
             // year: 2024,
-            // day: 31,
-            // punchIn: new Date(),
-            // punchOut: new Date(),
+            // day: 30,
+            // punchIn: new Date().toString(),
+            // punchOut: new Date().toString(),
             // status: 'punchout',
             // teacherId: user,
 
@@ -156,7 +157,7 @@ export default function Punching({ user }) {
 
 
         try {
-          const attendanceDoc = doc(attendanceCollectionRef, 'day-'+new Date().getDate())
+          const attendanceDoc = doc(attendanceCollectionRef, 'day-' + new Date().getDate())
           updateDoc(attendanceDoc, {
             punchOut: new Date().toString(),
             status: 'punchout',
@@ -169,7 +170,7 @@ export default function Punching({ user }) {
           console.log(err)
         }
 
-        
+
 
 
       } else if (
@@ -181,8 +182,8 @@ export default function Punching({ user }) {
   }
 
 
-//console.log(new Date().getFullYear()+'-'+(new Date().getMonth()+1)+'-'+new Date().getDate())
- 
+  //console.log(new Date().getFullYear()+'-'+(new Date().getMonth()+1)+'-'+new Date().getDate())
+
 
   useEffect(() => {
 
@@ -192,37 +193,71 @@ export default function Punching({ user }) {
 
         //new Date().getFullYear()+'-'+(new Date().getMonth()+1)+'-'+new Date().getDate()
 
-          const holidaysCollectionRef = await query(collection(db, `holidays-${new Date().getFullYear()}-${new Date().getFullYear() + 1}`), 
+        const holidaysCollectionRef = await query(collection(db, `holidays-${new Date().getFullYear()}-${new Date().getFullYear() + 1}`),
           where('day', '==', new Date().getDate()),
-          where('month', '==', new Date().getMonth()+1),
-          where( 'year', '==', new Date().getFullYear())
+          where('month', '==', new Date().getMonth() + 1),
+          where('year', '==', new Date().getFullYear())
         );
 
-          const data = await getDocs(query(holidaysCollectionRef,))
+        const data = await getDocs(query(holidaysCollectionRef,))
 
-          //await getDocs(teachersCollectionRef)
+        //await getDocs(teachersCollectionRef)
 
-          const filteredData = data.docs.map((doc) => (
-              {
-                  ...doc.data(),
-                  id: doc.id
-              }
-          ))
+        const filteredData = data.docs.map((doc) => (
+          {
+            ...doc.data(),
+            id: doc.id
+          }
+        ))
 
-          //filteredData.map((item) => {
-          setGetHolidays(filteredData)
-        console.log(filteredData)
-          //});
+        //filteredData.map((item) => {
+        setGetHolidays(filteredData)
+        //console.log(filteredData)
+        //});
 
 
 
       } catch (err) {
-          console.log('error')
-          console.log(err)
+        console.log('error')
+        console.log(err)
       }
-  })();
+    })();
 
 
+       //LEAVES
+       (async () => {
+        try {
+
+            const leaveCollectionRef = await query(collection(db, `leave`),
+                where('teacherId', '==', user),
+                where('day', '==', new Date().getDate()),
+                where('month', '==', new Date().getMonth() + 1),
+               where('status', '==', 'approved'),
+            );
+
+            const data = await getDocs(query(leaveCollectionRef,))
+
+            //await getDocs(teachersCollectionRef)
+
+            const filteredData = data.docs.map((doc) => (
+                {
+                    ...doc.data(),
+                    id: doc.id
+                }
+            ))
+
+            //filteredData.map((item) => {
+            seGetLeaves(filteredData)
+            // console.log(filteredData)
+            //});
+
+
+
+        } catch (err) {
+            console.log('error')
+            console.log(err)
+        }
+    })();
 
 
     getPunchStatus()
@@ -232,35 +267,42 @@ export default function Punching({ user }) {
 
 
 
-  //console.log(getHolidays[0] && getHolidays[0].day)
+  
   return (
     <>
-
- {getHolidays[0] && getHolidays[0].day == new Date().getDate() ? 
-  
-  <div className="text-lg font-bold text-red-600 border-1 text-center">
-    ഇന്ന് {getHolidays[0].reason} അവധിയാണ് 
+    {getLeaves.length !== 0 ? 
+    
+    <div className="text-lg font-bold text-red-600 border-1 text-center">
+  താങ്കൾ , ഇന്ന് ലീവിന് അപെക്ഷ നൽകിയിട്ടുണ്ട്. അത് കൊണ്ട്  പഞ്ചിങ് ചെയ്യാൻ സാധിക്കുന്നതല്ല 
   </div>
+    :   <div>
 
- :  <div>
- {!punchStatus.status && startTime <= 7 && endTime >= 8 ? 
-  <div className="bg-white rounded-xl p-6 grid gap-4 ">
-    <p className="text-base">തങ്ങളുടെ അകത്തോട്ട് ഉള്ള ഹാജർ രേഖപ്പെടുത്തുക  </p>
-    <button className="w-full bg-sky-400 hover:bg-sky-500 active:bg-sky-500 rounded-md p-4 text-white font-bold text-lg transition-all" onClick={() => readyIn()}>അകത്തേക്ക്</button>
-  </div> : null}
+      {getHolidays[0] && getHolidays[0].day == new Date().getDate() ?
 
-  {punchStatus.status == 'punchin' ? <div className="bg-white rounded-xl p-6 grid gap-4 ">
-    <p className="text-base">തങ്ങളുടെ പുറത്തേക്കുള്ള ഉള്ള ഹാജർ രേഖപ്പെടുത്തുക </p>
-    <button className="w-full bg-sky-400 hover:bg-sky-500 active:bg-sky-500 rounded-md p-4 text-white font-bold text-lg transition-all" onClick={() => readyOut()}>പുറത്തേക്കു</button>
-  </div> : null}
+        <div className="text-lg font-bold text-red-600 border-1 text-center">
+          ഇന്ന് {getHolidays[0].reason} അവധിയാണ്
+        </div>
 
-  {punchStatus.status == 'punchout' ? <div className="bg-white rounded-xl p-6 grid gap-4 w-full">
-    <p className="text-base">തങ്ങളുടെ ഹാജർ രേഖപ്പെടുത്തി. നന്ദി  </p>
-    <button className="w-full bg-transparent hover:bg-sky-500 active:bg-sky-500 hover:text-white active:text-white border border-sky-400 rounded-md p-4 text-sky-400 font-bold text-lg transition-all">റിപ്പോർട്ട് കാണുക </button>
-  </div> : null}
- </div>} 
-   
-  </>
+        : <div>
+          {!punchStatus.status && startTime <= 7 && endTime >= 8 ?
+            <div className="bg-white rounded-xl p-6 grid gap-4 ">
+              <p className="text-base">തങ്ങളുടെ അകത്തോട്ട് ഉള്ള ഹാജർ രേഖപ്പെടുത്തുക  </p>
+              <button className="w-full bg-sky-400 hover:bg-sky-500 active:bg-sky-500 rounded-md p-4 text-white font-bold text-lg transition-all" onClick={() => readyIn()}>അകത്തേക്ക്</button>
+            </div> : null}
+
+          {punchStatus.status == 'punchin' ? <div className="bg-white rounded-xl p-6 grid gap-4 ">
+            <p className="text-base">തങ്ങളുടെ പുറത്തേക്കുള്ള ഉള്ള ഹാജർ രേഖപ്പെടുത്തുക </p>
+            <button className="w-full bg-sky-400 hover:bg-sky-500 active:bg-sky-500 rounded-md p-4 text-white font-bold text-lg transition-all" onClick={() => readyOut()}>പുറത്തേക്കു</button>
+          </div> : null}
+
+          {punchStatus.status == 'punchout' ? <div className="bg-white rounded-xl p-6 grid gap-4 w-full">
+            <p className="text-base">തങ്ങളുടെ ഹാജർ രേഖപ്പെടുത്തി. നന്ദി  </p>
+            <button className="w-full bg-transparent hover:bg-sky-500 active:bg-sky-500 hover:text-white active:text-white border border-sky-400 rounded-md p-4 text-sky-400 font-bold text-lg transition-all">റിപ്പോർട്ട് കാണുക </button>
+          </div> : null}
+        </div>}
+        </div>
+}
+    </>
 
   )
 

@@ -13,8 +13,8 @@ export default function AttendanceView({ params }) {
 
 
     //WORKING TIME START AND END
-    const startTime = 7
-    const endTime = 8
+    const startTime = process.env.NEXT_PUBLIC_START_TIME
+    const endTime = process.env.NEXT_PUBLIC_END_TIME
 
 
     let { month } = params
@@ -28,27 +28,34 @@ export default function AttendanceView({ params }) {
     //STATES
     const [getAttendance, setGetAttendance] = useState([])
     const [getHolidays, setGetHolidays] = useState([])
-    const [checkIntime, setCheckInTime] = useState('')
+    const [getLeaves, seGetLeaves] = useState([])
+    const [leaveCount, setLeaveCount] = useState(0)
 
 
 
     //CHECk PUNCH IN
-    const checkPunchInTimeTeachers = (getTime) => {
+    const checkPunchInTimeTeachers = (punchInTime) => {
 
 
-
-        const onTimeThreshold = new Date();
-        onTimeThreshold.setHours(7, 6, 0);
+        const punchInDate = new Date(punchInTime);
 
 
-        const punchIn = new Date(getTime);
+        const punchInHour = punchInDate.getHours();
+        const punchInMinute = punchInDate.getMinutes();
 
 
-        if (punchIn <= onTimeThreshold) {
-            return 1;
+        const expectedHour = 7; // Expected hour for punch-in
+        const expectedMinute = 5; // Expected minute for punch-in
+
+
+        if (punchInHour > expectedHour || (punchInHour === expectedHour && punchInMinute > expectedMinute)) {
+            return "Late";
+        } else if (punchInHour === expectedHour && punchInMinute === expectedMinute) {
+            return "On time";
         } else {
-            return 0;
+            return "Early";
         }
+
 
     }
 
@@ -56,18 +63,25 @@ export default function AttendanceView({ params }) {
     //CHECk PUNCH OUT
     const checkPunchOutTimeTeachers = (getTime) => {
 
-        const onTimeThreshold = new Date();
-        onTimeThreshold.setHours(8, 0, 0);
+        const punchInDate = new Date(getTime);
 
 
-        const punchOut = new Date(getTime);
+        const punchInHour = punchInDate.getHours();
+        const punchInMinute = punchInDate.getMinutes();
 
 
-        if (punchOut >= onTimeThreshold) {
-            return 1;
+        const expectedHour = 8; // Expected hour for punch-in
+        const expectedMinute = 0; // Expected minute for punch-in
+
+
+        if (punchInHour > expectedHour || (punchInHour === expectedHour && punchInMinute > expectedMinute)) {
+            return "More";
+        } else if (punchInHour === expectedHour && punchInMinute === expectedMinute) {
+            return "On time";
         } else {
-            return 0;
+            return "Early";
         }
+
 
     }
 
@@ -88,17 +102,26 @@ export default function AttendanceView({ params }) {
     }
 
 
+    //GET THE DAY FROM DATE
+    function getDayFromDate(dateString) {
+
+        const date = new Date(dateString);
+        const day = date.getDate();
+        return day;
+    }
+
+
+
+
     //PRINT DAYS BY MONTH NUMBER
 
-    const attendanceTable = (holidays) => {
-
-
+    const attendanceTable = () => {
 
 
         const days = [];
 
 
-        const mergedArray = [...holidays, ...getAttendance];
+        const mergedArray = [...getHolidays, ...getAttendance, ...getLeaves];
 
 
         days.push(
@@ -110,31 +133,35 @@ export default function AttendanceView({ params }) {
 
                     <li className="flex justify-start items-center gap-5" key={key}>
 
-                        {/* {checkPunchInTimeTeachers(item.punchIn) == 0 ? 'Late': 'Correct'} */}
-                        {/* {checkPunchOutTimeTeachers(item.punchOut) == 0 ? 'Early': 'Correct'}  */}
+                        {item.reason && <span className="bg-white border-blue-800 border text-blue-800 rounded-full p-2 w-10 h-9 flex justify-center">{item.day}</span>}
 
-                        {/* {checkPunchInTimeTeachers(item.punchIn)} */}
-                        {item.reason && <span className="bg-white border-blue-800 border text-blue-800 rounded-full p-2 w-10 h-9 flex justify-center">{item.date.substring(item.date.indexOf("-") + 4)}</span>}
+                        {item.leaveDay && <span className="bg-red-500 border border-red-500 text-white rounded-full p-2 w-10 h-9 flex justify-center">{getDayFromDate(item.leaveDay)}</span>}
 
-                        {/* checkPunchInTimeTeachers(item.punchIn) == 0 &&  */}
-                        {!item.reason ? <span className={checkPunchOutTimeTeachers(item.punchOut) == 0 || checkPunchInTimeTeachers(item.punchIn) == 0 ?
+                        {!item.leaveDay && !item.reason ? <span className={
 
-                            'bg-yellow-400 border border-yellow-400 text-white rounded-full p-2 w-10 h-9 flex justify-center'
-                            :
-                            'bg-sky-400 border border-sky-400 text-white rounded-full p-2 w-10 h-9 flex justify-center'}>
+                            checkPunchInTimeTeachers(item.punchIn) == 'Late' || checkPunchOutTimeTeachers(item.punchOut) == 'Early' ?
+
+                                'bg-yellow-400 border border-yellow-400 text-white rounded-full p-2 w-10 h-9 flex justify-center'
+                                :
+                                'bg-sky-400 border border-sky-400 text-white rounded-full p-2 w-10 h-9 flex justify-center'}>
                             {item.day}
                         </span>
                             :
                             null
                         }
-                        {item.reason && <span className="flex justify-between items-center w-full border-b-gray-100 border-b-2 py-4  text-blue-800 font-semibold">
+
+                        {!item.leaveDay && item.reason && <span className="flex justify-between items-center w-full border-b-gray-100 border-b-2 py-4  text-blue-800 font-semibold">
                             <span>
                                 HOLIDAY - {item.reason}
                             </span>
                         </span>
                         }
 
-                        {!item.reason ? <span className={checkPunchOutTimeTeachers(item.punchOut) == 0 || checkPunchInTimeTeachers(item.punchIn) == 0 ? 'flex justify-between items-center w-full border-b-gray-100 border-b-2 py-4  text-yellow-400 font-semibold' : 'flex justify-between items-center w-full border-b-gray-100 border-b-2 py-4  text-sky-400 font-semibold'}>
+                        {!item.leaveDay && !item.reason ? <span className={
+
+                            checkPunchInTimeTeachers(item.punchIn) == 'Late' || checkPunchOutTimeTeachers(item.punchOut) == 'Early' ?
+
+                                'flex justify-between items-center w-full border-b-gray-100 border-b-2 py-4  text-yellow-400 font-semibold' : 'flex justify-between items-center w-full border-b-gray-100 border-b-2 py-4  text-sky-400 font-semibold'}>
                             <span>
                                 IN  {getTimeFromString(item.punchIn)}
                                 {checkPunchInTimeTeachers(item.punchIn) == 0 ? '- LPU' : null}
@@ -147,17 +174,12 @@ export default function AttendanceView({ params }) {
                             :
                             null
                         }
-
-                        {/* <span className="flex justify-between items-center w-full border-b-gray-100 border-b-2 py-4  text-red-500 font-semibold">
-                                        <span>
-
-
-
-                                            {item.day}<br/>
-                                            {new Date().getDate()-1}<br/>
-                                            ABSENT
-                                        </span>
-                                    </span> */}
+                        {item.leaveDay && <span className="flex justify-between items-center w-full border-b-gray-100 border-b-2 py-4  text-red-500 font-semibold">
+                            <span>
+                                LEAVE - {item.leaveReason}
+                            </span>
+                        </span>
+                        }
 
                     </li>
                 </>
@@ -215,31 +237,45 @@ export default function AttendanceView({ params }) {
 
 
 
-
-
-
     //CALCULATE SALARY
     const paySalary = () => {
 
-        const latePunchin = getAttendance
+
+        const totalLeavePerYear = process.env.NEXT_PUBLIC_LEAVES_YEAR
 
         //console.log(getAttendance)
-        const latePunchinList = latePunchin.filter(item => checkPunchInTimeTeachers(item.punchIn) == 0);
-        const earlyPunchinList = latePunchin.filter(item => checkPunchOutTimeTeachers(item.punchOut) == 0);
+        const latePunchinList = getAttendance.filter(item => checkPunchInTimeTeachers(item.punchIn) == 'Late');
+        const earlyPunchinList = getAttendance.filter(item => checkPunchOutTimeTeachers(item.punchOut) == 'Early');
 
 
-        const totalDays = 30
 
-        const perDay = profile[0].salary / totalDays
+
+        
+        const weekOffdays = 5
+        //const monthlyHolidays = 2
+       // const addiTionalTIme = weekOffdays+monthlyHolidays
+      
+
+        const perDay = profile[0].salary / 30
 
         const lateDeduction = (parseInt((latePunchinList.length + earlyPunchinList.length)) / 3) * perDay
 
+
+        console.log(lateDeduction)
+
+
         //console.log(lateDeduction)
 
-        const earn = (getAttendance.length * perDay - lateDeduction)
+        //console.log(lateDeduction)
 
-        return earn
+        //2 = holidays36+
+        //5 = weekly holidays
+        const earn =  (30*perDay)-lateDeduction
+
+        return parseFloat(earn).toFixed(2)
     }
+
+
 
 
 
@@ -303,6 +339,43 @@ export default function AttendanceView({ params }) {
                 console.log(err)
             }
         })();
+
+
+        //LEAVES
+        (async () => {
+            try {
+
+                const leaveCollectionRef = await query(collection(db, `leave`),
+                    where('teacherId', '==', userId),
+                    where('month', '==', parseInt(month)),
+                    where('status', '==', 'approved'),
+                );
+
+                const data = await getDocs(query(leaveCollectionRef,))
+
+                //await getDocs(teachersCollectionRef)
+
+                const filteredData = data.docs.map((doc) => (
+                    {
+                        ...doc.data(),
+                        id: doc.id
+                    }
+                ))
+
+                //filteredData.map((item) => {
+                seGetLeaves(filteredData)
+                // console.log(filteredData)
+                //});
+
+
+
+            } catch (err) {
+                console.log('error')
+                console.log(err)
+            }
+        })();
+
+
         paySalary()
 
     }, []);
@@ -310,11 +383,11 @@ export default function AttendanceView({ params }) {
 
     return (
         <ProtectedRoute>
-            <div className="bg-white h-screen  px-6 py-5">
+            <div className="bg-white  px-6 py-5">
                 <Header type="page-header" title={`ഹാജർ പട്ടിക ${dateMalayalam(month)} ${new Date().getFullYear()}`} />
                 <div className="grid items-start px-6 py-5">
                     <ul className="p-0 m-0 number text-sm uppercase">
-                        {attendanceTable(getHolidays)}
+                        {attendanceTable()}
                     </ul>
                 </div>
                 <div className="fixed bottom-0 left-0 right-0 bg-white flex justify-start items-center gap-5 p-4 text-blue-800 font-semibold">

@@ -16,8 +16,13 @@ export default function Leave() {
 
     const router = useRouter()
 
+
+    //LOCAL STORAGE
+    const userId = localStorage.getItem('userId');
+
+
     //CONTEXT
-    const { loginUser } = useUserContext()
+    const { profile } = useUserContext()
 
 
     //FIREBASE DB
@@ -26,7 +31,6 @@ export default function Leave() {
     //STATES
     const [leave, setLeave] = useState([])
     const [allLeave, setAllLeave] = useState([])
-    const [userData, setUserData] = useState('')
 
 
 
@@ -43,22 +47,7 @@ export default function Leave() {
 
     useEffect(() => {
 
-        //LOGIN USER
-        const activeUser = async () => {
-            try {
-                const result = await loginUser.email;
-                setUserData(result);
-                setLoading(true)
-            } catch (error) {
-                console.error('Error fetching data:', error);
-            }
-        };
 
-
-    
-
-  
-        activeUser()
         getLeaveList()
         getAllLeaveList()
 
@@ -75,7 +64,7 @@ export default function Leave() {
 
         try {
 
-            const userId = await loginUser.uid
+    
             const data = await getDocs(query(leaveCollectionRef, where('teacherId', '==', userId)))
 
 
@@ -254,7 +243,7 @@ export default function Leave() {
                             <ul className="grid gap-7">
 
                                 {
-                                    userData == 'jaseerali2012@gmail.com' ? allLeave.map((leave, key) => (
+                                    profile[0].email ==  'jaseerali2012@gmail.com' ? allLeave.map((leave, key) => (
                                         <>
                                             <li className="bg-white rounded-xl p-6 grid gap-4" key={key}>
                                                 <div className="grid gap-2">
@@ -264,7 +253,7 @@ export default function Leave() {
                                                 {leave.status == 'pending' && <div className="w-full bg-yellow-50  rounded-md p-4 text-yellow-500 font-bold text-lg text-center">പരിശോദിക്കുന്നു</div>}
                                                 {leave.status == 'approved' && <div className="w-full bg-green-50  rounded-md p-4 text-green-500 font-bold text-lg text-center">അനുവദിച്ചു</div>}
                                                 {leave.status == 'rejected' && <div className="w-full bg-red-50 rounded-md p-4 text-red-500 font-bold text-lg text-center">അനുവദിച്ചിട്ടില്ല</div>}
-                                                {userData == 'jaseerali2012@gmail.com' ?
+                                                {profile[0].email ==  'jaseerali2012@gmail.com' ?
                                                     <>
                                                         <button onClick={() => changeLeaveStatus('approved', leave.id)} className="w-full bg-white border border-green-500 hover:bg-green-500 active:bg-green-500 rounded-md p-4 text-green-500 hover:text-white active:text-white font-bold text-lg transition-all">അനുവദിക്കുക</button>
                                                         <button onClick={() => changeLeaveStatus('rejected', leave.id)} className="w-full bg-white border border-red-500 hover:bg-red-600 active:bg-red-600 rounded-md p-4 text-red-600 hover:text-white active:text-white font-bold text-lg transition-all">ഒഴിവാക്കുക</button>
@@ -285,7 +274,7 @@ export default function Leave() {
                                                 {leave.status == 'approved' && <div className="w-full bg-green-50  rounded-md p-4 text-green-500 font-bold text-lg text-center">അനുവദിച്ചു</div>}
                                                 {leave.status == 'rejected' && <div className="w-full bg-red-50 rounded-md p-4 text-red-500 font-bold text-lg text-center">അനുവദിച്ചിട്ടില്ല</div>}
                                                 {leave.status == 'Canceled' && <div className="w-full bg-red-50 rounded-md p-4 text-red-500 font-bold text-lg text-center">ലീവ് ഉപേക്ഷിച്ചു </div>}
-                                                {userData == 'jaseerali2012@gmail.com' ?
+                                                {profile[0].email ==  'jaseerali2012@gmail.com' ?
                                                     <>
                                                         <button onClick={() => changeLeaveStatus('approved', leave.id)} className="w-full bg-white border border-green-500 hover:bg-green-500 active:bg-green-500 rounded-md p-4 text-green-500 hover:text-white active:text-white font-bold text-lg transition-all">അനുവദിക്കുക</button>
                                                         <button onClick={() => changeLeaveStatus('rejected', leave.id)} className="w-full bg-white border border-red-500 hover:bg-red-600 active:bg-red-600 rounded-md p-4 text-red-600 hover:text-white active:text-white font-bold text-lg transition-all">ഒഴിവാക്കുക</button>
@@ -300,7 +289,7 @@ export default function Leave() {
 
                             </ul>
                         </div>
-                        {userData !== 'jaseerali2012@gmail.com' ?
+                        {profile[0].email !== 'jaseerali2012@gmail.com' ?
                             <div className="fixed bottom-0 left-0 right-0 bg-white flex justify-start items-center gap-5 p-4 text-blue-800 font-semibold">
                                 <Link href="/leave-application" className="w-full bg-sky-400 hover:bg-sky-500 active:bg-sky-500 rounded-md p-4 text-white font-bold text-lg transition-all block text-center">ലീവിന് അപേക്ഷിക്കുക</Link>
                             </div>
